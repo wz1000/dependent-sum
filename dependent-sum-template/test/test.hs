@@ -60,9 +60,9 @@ polyTests f = do
         showSame gadt = show gadt == gshow gadt
     guard $ showSame $ f MySum_Int
     guard $ showSame $ f MySum_String
-  guard $ (f MySum_Int `geq` f MySum_Int) == Just Refl
+  guard $ (f MySum_Int `geq` f MySum_Int) == Just HRefl
   guard $ (f MySum_Int `gcompare` f MySum_Int) == GEQ
-  guard $ (f MySum_String `geq` f MySum_String) == Just Refl
+  guard $ (f MySum_String `geq` f MySum_String) == Just HRefl
   guard $ (f MySum_String `gcompare` f MySum_String) == GEQ
   guard $ (f MySum_Int `gcompare` f MySum_String) == GLT
   guard $ (f MySum_String `gcompare` f MySum_Int) == GGT
@@ -132,16 +132,16 @@ data Splort a where
 -- not even be the case that a finite number of matches would suffice.
 instance GEq Splort where
     geq (Splort (E x1) x2) (Splort (E y1) y2) = do
-        Refl <- geq x1 y1
+        HRefl <- geq x1 y1
         guard (x2 == y2)
-        Just Refl
+        Just HRefl
 
 deriving instance Show a => Show (Splort a)
 
 instance GCompare Splort where
     gcompare (Splort (E x1) x2) (Splort (E y1) y2) =
         runGComparing $ do
-            Refl <- geq' x1 y1
+            HRefl <- geq' x1 y1
             compare' x2 y2
             return GEQ
 

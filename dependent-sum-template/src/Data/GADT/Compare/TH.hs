@@ -17,7 +17,7 @@ import Data.Dependent.Sum.TH.Internal
 import Data.Functor.Identity
 import Data.GADT.Compare
 import Data.Traversable (for)
-import Data.Type.Equality ((:~:) (..))
+import Data.Type.Equality ((:~:) (..), (:~~:) (..))
 import Language.Haskell.TH
 import Language.Haskell.TH.Extras
 
@@ -62,11 +62,11 @@ geqClause bndrs con = do
            ]
         ( normalB $ doE
             (  [ if needsGEq argType
-                    then bindS (conP 'Refl []) [| geq $(varE lArg) $(varE rArg) |]
+                    then bindS (conP 'HRefl []) [| geq $(varE lArg) $(varE rArg) |]
                     else noBindS [| guard ($(varE lArg) == $(varE rArg)) |]
                | (lArg, rArg, argType) <- zip3 lArgNames rArgNames argTypes
                ]
-            ++ [ noBindS [| return Refl |] ]
+            ++ [ noBindS [| return HRefl |] ]
             )
         ) []
     where conName = nameOfCon con
@@ -83,10 +83,10 @@ instance Applicative (GComparing a b) where
     pure = return
     (<*>) = ap
 
-geq' :: GCompare t => t a -> t b -> GComparing x y (a :~: b)
+geq' :: GCompare t => t a -> t b -> GComparing x y (a :~~: b)
 geq' x y = GComparing (case gcompare x y of
     GLT -> Left GLT
-    GEQ -> Right Refl
+    GEQ -> Right HRefl
     GGT -> Left GGT)
 
 compare' x y = GComparing $ case compare x y of
@@ -151,7 +151,7 @@ gcompareFunction boundVars cons
                     [| runGComparing $
                         $(doE
                             (  [ if needsGCompare argType con
-                                    then bindS (conP 'Refl []) [| geq' $(varE lArg) $(varE rArg) |]
+                                    then bindS (conP 'HRefl []) [| geq' $(varE lArg) $(varE rArg) |]
                                     else noBindS [| compare' $(varE lArg) $(varE rArg) |]
                                | (lArg, rArg, argType) <- zip3 lArgNames rArgNames argTypes
                                ]
